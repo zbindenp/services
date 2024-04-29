@@ -9,6 +9,12 @@ import java.util.List;
 
 @RestController
 public class Controller {
+    private final ProductRepository productRepo;
+
+    public Controller(ProductRepository productRepo) {
+        this.productRepo = productRepo;
+    }
+
     @GetMapping("/hello")
     public String hello() {
         return "Hello world";
@@ -16,6 +22,9 @@ public class Controller {
 
     @GetMapping("products")
     public List<ProductDto> getAllProducts() {
-        return List.of(new ProductDto(1L, "Banane"));
+        final List<Product> products = productRepo.getAllProducts();
+        return products.stream()
+                .map(p-> new ProductDto(p.getId(), p.getName()))
+                .toList();
     }
 }

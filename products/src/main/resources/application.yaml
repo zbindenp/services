@@ -7,3 +7,6 @@ spring:
     url: jdbc:sqlserver://${DATABASE_HOST:localhost}:${DATABASE_PORT:1433};databaseName=${DATABASE_NAME:products}
     username: ${DATABASE_USERNAME:sa}
     password: ${DATABASE_PASSWORD:secure}
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
