@@ -1,0 +1,43 @@
+version: "3"
+
+services:
+
+  otel-collector:
+    image: otel/opentelemetry-collector:0.99.0
+    restart: always
+    container_name: otel-collector
+    command: [ "--config=/etc/otelcollector.yaml" ]
+    volumes:
+      - ./otelcollector.yaml:/etc/otelcollector.yaml
+    ports:
+      - "4317:4317" # OTLP gRPC receiver port
+      - "4318:4318" # OTLP http receiver port
+      - "8889:8889" # Prometheus exporter metrics
+      - "1234:1234" # Prometheus exporter metrics
+
+  prometheus:
+    image: prom/prometheus:latest
+    restart: always
+    container_name: prometheus
+    command: [ "--config.file=/etc/prometheus/prometheus.yml","--log.level=debug" ]
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.56.0
+    restart: always
+    container_name: jaeger
+    ports:
+      - "6831:6831/udp"
+      - "14250:14250"
+      - "4417:4317"
+      - "16686:16686"
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: always
+    container_name: grafana
+    ports:
+      - "3000:3000"
