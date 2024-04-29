@@ -19,7 +19,7 @@ services:
     image: prom/prometheus:latest
     restart: always
     container_name: prometheus
-    command: [ "--config.file=/etc/prometheus/prometheus.yml","--log.level=debug" ]
+    command: [ "--config.file=/etc/prometheus/prometheus.yml","--log.level=debug", "--web.enable-remote-write-receiver" ]
     ports:
       - "9090:9090"
     volumes:
