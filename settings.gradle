@@ -1,5 +1,2 @@
-plugins {
-}
-
 rootProject.name = 'services'
 include('products')

@@ -19,12 +19,19 @@ java {
 }
 
 repositories {
-	mavenCentral()
+	if (project.hasProperty('REPO1_URL')) {
+		maven {
+			url REPO1_URL
+		}
+	} else {
+		mavenCentral()
+	}
 }
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter'
 	runtimeOnly 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0'
 	runtimeOnly 'io.opentelemetry.instrumentation:opentelemetry-logback-mdc-1.0'
