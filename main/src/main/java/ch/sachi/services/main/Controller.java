@@ -11,9 +11,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class Controller {
 
   private final ProductsService productService;
+  private final CustomerService customerService;
 
-  public Controller(ProductsService productService) {
+  public Controller(ProductsService productService, CustomerService customerService) {
     this.productService = productService;
+    this.customerService = customerService;
   }
 
   @GetMapping("main")
@@ -22,6 +24,7 @@ public class Controller {
     logger.info("Start getting products");
     final List<ProductInfoDto> products = productService.getAllProducts();
     logger.info("We have {} products", products.size());
-    return new MainResult(products);
+    final List<CustomerInfo> customers = customerService.getAllCustomers();
+    return new MainResult(products, customers);
   }
 }
