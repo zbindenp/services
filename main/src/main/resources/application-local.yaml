@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: jdbc:sqlserver://172.28.140.162:31433;encrypt=false;trustServerCertificate=false;databaseName=products
+    username: sa
+    password: Bison2024
