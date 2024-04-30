@@ -1,7 +1,7 @@
 package ch.sachi.services.customers;
 
 import ch.sachi.services.customers.persistence.Customer;
-import ch.sachi.services.customers.persistence.CustomerRepository;
+import ch.sachi.services.customers.persistence.CustomerRepositoryImpl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,9 +12,9 @@ import java.util.List;
 
 @RestController
 public class Controller {
-    private final CustomerRepository customerRepo;
+    private final CustomerRepositoryImpl customerRepo;
 
-    public Controller(CustomerRepository customerRepo) {
+    public Controller(CustomerRepositoryImpl customerRepo) {
         this.customerRepo = customerRepo;
     }
 

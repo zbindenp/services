@@ -1,7 +1,7 @@
 package ch.sachi.services.products;
 
 import ch.sachi.services.products.persistence.Product;
-import ch.sachi.services.products.persistence.ProductRepository;
+import ch.sachi.services.products.persistence.ProductRepositoryImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,9 +11,9 @@ import java.util.List;
 
 @RestController
 public class Controller {
-    private final ProductRepository productRepo;
+    private final ProductRepositoryImpl productRepo;
 
-    public Controller(ProductRepository productRepo) {
+    public Controller(ProductRepositoryImpl productRepo) {
         this.productRepo = productRepo;
     }
 

@@ -5,10 +5,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class ProductRepository implements ch.sachi.services.products.ProductRepository {
+public class ProductRepositoryImpl implements ch.sachi.services.products.ProductRepository {
     private final JpaProductRepository jpaRepo;
 
-    public ProductRepository(JpaProductRepository jpaRepo) {
+    public ProductRepositoryImpl(JpaProductRepository jpaRepo) {
         this.jpaRepo = jpaRepo;
     }
 
