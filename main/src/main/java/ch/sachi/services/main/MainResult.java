@@ -1,4 +1,6 @@
 package ch.sachi.services.main;
 
-public record MainResult(java.util.List<ProductDto> products) {
+import java.util.List;
+
+public record MainResult(List<ProductInfoDto> products) {
 }

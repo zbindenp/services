@@ -20,7 +20,7 @@ public class Controller {
   public MainResult getAllProducts() {
     final Logger logger = LoggerFactory.getLogger(getClass());
     logger.info("Start getting products");
-    final List<ProductDto> products = productService.getAllProducts();
+    final List<ProductInfoDto> products = productService.getAllProducts();
     logger.info("We have {} products", products.size());
     return new MainResult(products);
   }
