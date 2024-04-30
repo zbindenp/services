@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: customers
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        session:
+          events:
+            log:
+              LOG_QUERIES_SLOWER_THAN_MS: 1
+  datasource:
+    url: jdbc:sqlserver://${DATABASE_HOST:localhost}:${DATABASE_PORT:1433};databaseName=${DATABASE_NAME:customers}
+    username: ${DATABASE_USERNAME:sa}
+    password: ${DATABASE_PASSWORD:secure}
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+server:
+  port : 8081
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+otel:
+  instrumentation:
+    spring-web:
+      enabled: true
+    logback-appender:
+      enabled: true
+      experimental:
+        capture-mdc-attributes: '*'

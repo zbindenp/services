@@ -1,2 +1,2 @@
 rootProject.name = 'services'
-include('products')
+include('products', 'customers')

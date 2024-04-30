@@ -6,4 +6,5 @@ build
 
 .idea
 products/src/main/resources/application-local.yaml
+customers/src/main/resources/application-local.yaml
 gradle.properties
