@@ -1,0 +1,32 @@
+version: "3"
+
+services:
+  products:
+    image: services/products
+    restart: always
+    container_name: products
+    build:
+      context: ../products
+      dockerfile: ../products/Dockerfile
+    ports:
+      - "8081:8081"
+
+  customers:
+    image: services/customers
+    restart: always
+    container_name: customers
+    build:
+      context: ../customers
+      dockerfile: ../customers/Dockerfile
+    ports:
+      - "8082:8082"
+
+  main:
+    image: services/main
+    restart: always
+    container_name: main
+    build:
+      context: ../main
+      dockerfile: ../main/Dockerfile
+    ports:
+      - "8080:8080"

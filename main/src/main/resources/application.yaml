@@ -10,12 +10,15 @@ spring:
             log:
               LOG_QUERIES_SLOWER_THAN_MS: 1
   datasource:
-    url: jdbc:sqlserver://${DATABASE_HOST:localhost}:${DATABASE_PORT:1433};databaseName=${DATABASE_NAME:products}
+    url: jdbc:sqlserver://${DATABASE_HOST:localhost}:${DATABASE_PORT:1433};encrypt=false;trustServerCertificate=false;databaseName=${DATABASE_NAME:products}
     username: ${DATABASE_USERNAME:sa}
     password: ${DATABASE_PASSWORD:secure}
   flyway:
     enabled: true
     baseline-on-migrate: true
+main:
+  productsbaseurl: ${PRODUCTS_BASE_URL:http://localhost:8081}
+  customersbaseurl: ${CUSTOMERS_BASE_URL:http://localhost:8082}
 server:
   port : 8080
 management:
@@ -24,6 +27,8 @@ management:
       exposure:
         include: '*'
 otel:
+  logs:
+    exporter: none
   instrumentation:
     spring-web:
       enabled: true
@@ -31,3 +36,7 @@ otel:
       enabled: true
       experimental:
         capture-mdc-attributes: '*'
+  exporter:
+    otlp:
+      traces:
+        endpoint: ${OTEL_COLLECTOR:http://localhost:4318/v1/traces}
