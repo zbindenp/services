@@ -17,9 +17,15 @@ spec:
         - name: products
           image: "localhost:5000/services/produts:latest"
           imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: '0.3'
+              ephemeral-storage: "100Mi"
+              memory: "512Mi"
           env:
             - name: OTEL_COLLECTOR
               value: http://otel-collector-service:4318
+      automountServiceAccountToken: false
 ---
 apiVersion: v1
 kind: Service
@@ -57,9 +63,15 @@ spec:
         - name: customers
           image: "localhost:5000/services/customers:latest"
           imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: '0.3'
+              ephemeral-storage: "100Mi"
+              memory: "512Mi"
           env:
             - name: OTEL_COLLECTOR
               value: http://otel-collector-service:4318
+      automountServiceAccountToken: false
 ---
 apiVersion: v1
 kind: Service
@@ -97,6 +109,11 @@ spec:
         - name: main
           image: "localhost:5000/services/main:latest"
           imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: '0.3'
+              ephemeral-storage: "100Mi"
+              memory: "512Mi"
           env:
             - name: PRODUCTS_BASE_URL
               value: http://products-service:8081
@@ -104,6 +121,7 @@ spec:
               value: http://customers-service:8082
             - name: OTEL_COLLECTOR
               value: http://otel-collector-service:4318
+      automountServiceAccountToken: false
 ---
 apiVersion: v1
 kind: Service
@@ -162,6 +180,11 @@ spec:
           image: "otel/opentelemetry-collector:0.99.0"
           # command: [ "--config=/var/otelcollector.yaml" ]
           imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: '0.3'
+              ephemeral-storage: "100Mi"
+              memory: "512Mi"
           volumeMounts:
             - name: config-volume
               mountPath: /etc/otelcol/
@@ -169,6 +192,7 @@ spec:
         - name: config-volume
           configMap:
             name: otel-collector-config
+      automountServiceAccountToken: false
 ---
 apiVersion: v1
 kind: Service
