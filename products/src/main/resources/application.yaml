@@ -26,6 +26,8 @@ management:
 otel:
   logs:
     exporter: none
+  metrics:
+    exporter: none
   instrumentation:
     spring-web:
       enabled: true
@@ -36,4 +38,7 @@ otel:
   exporter:
     otlp:
       traces:
-        endpoint: ${OTEL_COLLECTOR:http://localhost:4318/v1/traces}
+        endpoint: ${OTEL_COLLECTOR:http://localhost:4318}/v1/traces
+      metrics:
+        endpoint: ${OTEL_COLLECTOR:http://localhost:4318}/v1/metrics
+

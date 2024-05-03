@@ -5,6 +5,14 @@ receivers:
         endpoint: 0.0.0.0:4317
       http:
         endpoint: 0.0.0.0:4318
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'otel-collector'
+          metrics_path: '/actuator/prometheus'
+          scrape_interval: 10s
+          static_configs:
+            - targets: [ 'main-service:8080', 'products-service:8081', 'customers-service:8082' ]
 
 processors:
 
@@ -12,24 +20,28 @@ exporters:
   prometheus:
     endpoint: "0.0.0.0:1234"
   prometheusremotewrite:
-    endpoint: "http://prometheus:9090/api/v1/write"
+    endpoint: "http://172.28.140.162:9090/api/v1/write"
     tls:
       insecure: true
   otlp/jaeger:
-    endpoint: "jaeger:4317"
+    endpoint: "172.28.140.162:4317"
     tls:
       insecure: true
+  debug:
+    verbosity: detailed
+    sampling_initial: 5
+    sampling_thereafter: 200
 
 service:
   telemetry:
     logs:
       level: "info"
   pipelines:
-    traces:
-      receivers: [otlp]
-      processors: []
-      exporters: [otlp/jaeger]
     metrics:
       receivers: [otlp]
       processors: []
       exporters: [prometheusremotewrite]
+    traces:
+      receivers: [otlp]
+      processors: []
+      exporters: [otlp/jaeger]

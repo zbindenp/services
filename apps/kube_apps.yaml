@@ -1,0 +1,191 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: products
+  namespace: demo
+spec:
+  selector:
+    matchLabels:
+      app: products
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: products
+    spec:
+      containers:
+        - name: products
+          image: "localhost:5000/services/produts:latest"
+          imagePullPolicy: Always
+          env:
+            - name: OTEL_COLLECTOR
+              value: http://otel-collector-service:4318
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: products-service
+  namespace: demo
+  labels:
+    app: products
+spec:
+  type: NodePort
+  selector:
+    app: products
+  ports:
+    - name: "http"
+      port: 8081 # Port wie der Service im kubernetes-cluster erreichbar ist. Default 8080
+      targetPort: 8081 # Port welcher im Image verwendet wird. Default
+      nodePort: 30081 # Port über welchen auf den kubernetes-cluster vom Host PC zugegriffen werden kann
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customers
+  namespace: demo
+spec:
+  selector:
+    matchLabels:
+      app: customers
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: customers
+    spec:
+      containers:
+        - name: customers
+          image: "localhost:5000/services/customers:latest"
+          imagePullPolicy: Always
+          env:
+            - name: OTEL_COLLECTOR
+              value: http://otel-collector-service:4318
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: customers-service
+  namespace: demo
+  labels:
+    app: customers
+spec:
+  type: NodePort
+  selector:
+    app: customers
+  ports:
+    - name: "http"
+      port: 8082 # Port wie der Service im kubernetes-cluster erreichbar ist. Default 8080
+      targetPort: 8082 # Port welcher im Image verwendet wird. Default
+      nodePort: 30082 # Port über welchen auf den kubernetes-cluster vom Host PC zugegriffen werden kann
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: main
+  namespace: demo
+spec:
+  selector:
+    matchLabels:
+      app: main
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: main
+    spec:
+      containers:
+        - name: main
+          image: "localhost:5000/services/main:latest"
+          imagePullPolicy: Always
+          env:
+            - name: PRODUCTS_BASE_URL
+              value: http://products-service:8081
+            - name: CUSTOMERS_BASE_URL
+              value: http://customers-service:8082
+            - name: OTEL_COLLECTOR
+              value: http://otel-collector-service:4318
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: main-service
+  namespace: demo
+  labels:
+    app: main
+spec:
+  type: NodePort
+  selector:
+    app: main
+  ports:
+    - name: "http"
+      port: 8080 # Port wie der Service im kubernetes-cluster erreichbar ist. Default 8080
+      targetPort: 8080 # Port welcher im Image verwendet wird. Default
+      nodePort: 30088 # Port über welchen auf den kubernetes-cluster vom Host PC zugegriffen werden kann
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: demo
+data:
+  config.yaml: "receivers:\r\n  otlp:\r\n    protocols:\r\n      grpc:\r\n
+    \       endpoint: 0.0.0.0:4317\r\n      http:\r\n        endpoint: 0.0.0.0:4318\r\n
+    \ prometheus:\r\n    config:\r\n      scrape_configs:\r\n        - job_name: 'otel-collector'\r\n
+    \         metrics_path: '/actuator/prometheus'\r\n          scrape_interval: 10s\r\n
+    \         static_configs:\r\n            - targets: [ 'main-service:8080', 'products-service:8081',
+    'customers-service:8082' ]\r\n\r\nprocessors:\r\n\r\nexporters:\r\n  prometheus:\r\n
+    \   endpoint: \"0.0.0.0:1234\"\r\n  prometheusremotewrite:\r\n    endpoint: \"http://172.28.140.162:9090/api/v1/write\"\r\n
+    \   tls:\r\n      insecure: true\r\n  otlp/jaeger:\r\n    endpoint: \"172.28.140.162:4417\"\r\n
+    \   tls:\r\n      insecure: true\r\n  debug:\r\n    verbosity: detailed\r\n    sampling_initial:
+    5\r\n    sampling_thereafter: 200\r\n\r\nservice:\r\n  telemetry:\r\n    logs:\r\n
+    \     level: \"info\"\r\n  pipelines:\r\n    metrics:\r\n      receivers: [prometheus]\r\n
+    \     processors: []\r\n      exporters: [prometheusremotewrite]\r\n    traces:\r\n
+    \     receivers: [otlp]\r\n      processors: []\r\n      exporters: [otlp/jaeger]\r\n"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  namespace: demo
+spec:
+  selector:
+    matchLabels:
+      app: otel-collector
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      containers:
+        - name: main
+          image: "otel/opentelemetry-collector:0.99.0"
+          # command: [ "--config=/var/otelcollector.yaml" ]
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/otelcol/
+      volumes:
+        - name: config-volume
+          configMap:
+            name: otel-collector-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector-service
+  namespace: demo
+  labels:
+    app: otel-collector
+spec:
+  type: NodePort
+  selector:
+    app: otel-collector
+  ports:
+    - name: "otlp-grpc"
+      port: 4317 # Port wie der Service im kubernetes-cluster erreichbar ist.
+      targetPort: 4317 # Port welcher im Image verwendet wird. Default
+    - name: "otlp-http"
+      port: 4318 # Port wie der Service im kubernetes-cluster erreichbar ist.
+      targetPort: 4318 # Port welcher im Image verwendet wird. Default
+
