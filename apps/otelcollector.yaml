@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  namespace: demo
+spec:
+  selector:
+    matchLabels:
+      app: otel-collector
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      containers:
+        - name: main
+          image: "otel/opentelemetry-collector:0.99.0"
+          # command: [ "--config=/var/otelcollector.yaml" ]
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: '0.3'
+              ephemeral-storage: "100Mi"
+              memory: "512Mi"
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/otelcol/
+      volumes:
+        - name: config-volume
+          configMap:
+            name: otel-collector-config
+      automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector-service
+  namespace: demo
+  labels:
+    app: otel-collector
+spec:
+  type: NodePort
+  selector:
+    app: otel-collector
+  ports:
+    - name: "otlp-grpc"
+      port: 4317 # Port wie der Service im kubernetes-cluster erreichbar ist.
+      targetPort: 4317 # Port welcher im Image verwendet wird. Default
+    - name: "otlp-http"
+      port: 4318 # Port wie der Service im kubernetes-cluster erreichbar ist.
+      targetPort: 4318 # Port welcher im Image verwendet wird. Default
+

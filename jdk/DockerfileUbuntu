@@ -1,0 +1,8 @@
+FROM eclipse-temurin:21
+LABEL authors="patrick.zbinden"
+
+COPY products/build/classes/java/main/GUI.class /tmp/GUI.class
+RUN apt update
+RUN apt --yes install libxrender1 libxtst6 libxi6
+
+ENTRYPOINT ["sleep", "99999"]

@@ -15,16 +15,24 @@ spec:
     spec:
       containers:
         - name: products
-          image: "localhost:5000/services/produts:latest"
+          image: "localhost:5000/services/products:latest"
           imagePullPolicy: Always
           resources:
             limits:
-              cpu: '0.3'
+              cpu: '0.5'
               ephemeral-storage: "100Mi"
               memory: "512Mi"
           env:
             - name: OTEL_COLLECTOR
               value: http://otel-collector-service:4318
+            - name: DATABASE_HOST
+              value: msssql.databases.svc.cluster.local
+            - name: DATABASE_PORT
+              value: "1433"
+            - name: DATABASE_USERNAME
+              value: sa
+            - name: DATABASE_PASSWORD
+              value: Bison2025
       automountServiceAccountToken: false
 ---
 apiVersion: v1
@@ -65,12 +73,20 @@ spec:
           imagePullPolicy: Always
           resources:
             limits:
-              cpu: '0.3'
+              cpu: '0.5'
               ephemeral-storage: "100Mi"
               memory: "512Mi"
           env:
             - name: OTEL_COLLECTOR
               value: http://otel-collector-service:4318
+            - name: DATABASE_HOST
+              value: msssql.databases.svc.cluster.local
+            - name: DATABASE_PORT
+              value: "1433"
+            - name: DATABASE_USERNAME
+              value: sa
+            - name: DATABASE_PASSWORD
+              value: Bison2025
       automountServiceAccountToken: false
 ---
 apiVersion: v1
@@ -111,16 +127,24 @@ spec:
           imagePullPolicy: Always
           resources:
             limits:
-              cpu: '0.3'
+              cpu: '0.5'
               ephemeral-storage: "100Mi"
               memory: "512Mi"
           env:
             - name: PRODUCTS_BASE_URL
-              value: http://products-service:8081
+              value: http://products-service.demo.svc.cluster.local:8081
             - name: CUSTOMERS_BASE_URL
-              value: http://customers-service:8082
+              value: http://customers-service.demo.svc.cluster.local:8082
             - name: OTEL_COLLECTOR
               value: http://otel-collector-service:4318
+            - name: DATABASE_HOST
+              value: msssql.databases.svc.cluster.local
+            - name: DATABASE_PORT
+              value: "1433"
+            - name: DATABASE_USERNAME
+              value: sa
+            - name: DATABASE_PASSWORD
+              value: Bison2025
       automountServiceAccountToken: false
 ---
 apiVersion: v1

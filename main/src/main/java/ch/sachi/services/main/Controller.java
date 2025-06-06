@@ -24,7 +24,9 @@ public class Controller {
     logger.info("Start getting products");
     final List<ProductInfoDto> products = productService.getAllProducts();
     logger.info("We have {} products", products.size());
+    logger.info("Start getting customers");
     final List<CustomerInfo> customers = customerService.getAllCustomers();
+    logger.info("We have {} customers", customers.size());
     return new MainResult(products, customers);
   }
 }
