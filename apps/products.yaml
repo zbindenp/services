@@ -35,7 +35,7 @@ spec:
             - name: DATABASE_USERNAME
               value: sa
             - name: DATABASE_PASSWORD
-              value: Bison2025
+              value: ${SA_PASSWORD}
           livenessProbe:
             httpGet:
               path: /actuator/health
@@ -83,23 +83,3 @@ spec:
       targetPort: 8081 # Port welcher im Image verwendet wird. Default
       nodePort: 30081 # Port über welchen auf den kubernetes-cluster vom Host PC zugegriffen werden kann
 ---
-apiVersion: autoscaling.x-k8s.io/v1alpha1
-kind: StartupCPUBoost
-metadata:
-  name: boost-products
-  namespace: demo
-selector:
-  matchExpressions:
-  - key: app.kubernetes.io/name
-    operator: In
-    values: ["products"]
-spec:
-  resourcePolicy:
-    containerPolicies:
-    - containerName: products
-      percentageIncrease:
-        value: 100
-  durationPolicy:
-    podCondition:
-      type: Ready
-      status: "True"

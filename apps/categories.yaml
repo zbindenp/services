@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: categories
+  namespace: demo
+spec:
+  selector:
+    matchLabels:
+      app: categories
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: categories
+    spec:
+      containers:
+        - name: categories
+          image: "localhost:5000/services/categories:latest"
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: '0.2'
+              memory: "512Mi"
+            limits:
+              cpu: '0.2'
+              ephemeral-storage: "100Mi"
+              memory: "512Mi"
+          env:
+            - name: DATABASE_HOST
+              value: msssql.databases.svc.cluster.local
+            - name: DATABASE_PORT
+              value: "1433"
+            - name: DATABASE_USERNAME
+              value: sa
+            - name: DATABASE_PASSWORD
+              value: ${SA_PASSWORD}
+      automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: categories-service
+  namespace: demo
+  labels:
+    app: categories
+spec:
+  type: NodePort
+  selector:
+    app: categories
+  ports:
+    - name: "http"
+      port: 8081 # Port wie der Service im kubernetes-cluster erreichbar ist. Default 8080
+      targetPort: 8081 # Port welcher im Image verwendet wird. Default
+      nodePort: 30083 # Port über welchen auf den kubernetes-cluster vom Host PC zugegriffen werden kann

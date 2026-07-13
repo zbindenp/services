@@ -18,21 +18,24 @@ spec:
           image: "localhost:5000/services/products:latest"
           imagePullPolicy: Always
           resources:
+            requests:
+              cpu: '0.2'
+              memory: "512Mi"
             limits:
-              cpu: '0.5'
+              cpu: '1'
               ephemeral-storage: "100Mi"
               memory: "512Mi"
           env:
             - name: OTEL_COLLECTOR
               value: http://otel-collector-service:4318
             - name: DATABASE_HOST
-              value: msssql.databases.svc.cluster.local
+              value: mssql-server.databases.svc.cluster.local
             - name: DATABASE_PORT
               value: "1433"
             - name: DATABASE_USERNAME
-              value: sa
+              value: serviceDbUser
             - name: DATABASE_PASSWORD
-              value: Bison2025
+              value: myPassword01
       automountServiceAccountToken: false
 ---
 apiVersion: v1
@@ -48,8 +51,8 @@ spec:
     app: products
   ports:
     - name: "http"
-      port: 8081 # Port wie der Service im kubernetes-cluster erreichbar ist. Default 8080
-      targetPort: 8081 # Port welcher im Image verwendet wird. Default
+      port: 8080 # Port wie der Service im kubernetes-cluster erreichbar ist. Default 8080
+      targetPort: 8080 # Port welcher im Image verwendet wird. Default
       nodePort: 30081 # Port über welchen auf den kubernetes-cluster vom Host PC zugegriffen werden kann
 ---
 apiVersion: apps/v1
@@ -61,7 +64,7 @@ spec:
   selector:
     matchLabels:
       app: customers
-  replicas: 1
+  replicas: 4
   template:
     metadata:
       labels:
@@ -72,21 +75,24 @@ spec:
           image: "localhost:5000/services/customers:latest"
           imagePullPolicy: Always
           resources:
-            limits:
+            requests:
               cpu: '0.5'
+              memory: "512Mi"
+            limits:
+              cpu: '2'
               ephemeral-storage: "100Mi"
               memory: "512Mi"
           env:
             - name: OTEL_COLLECTOR
               value: http://otel-collector-service:4318
             - name: DATABASE_HOST
-              value: msssql.databases.svc.cluster.local
+              value: mssql-server.databases.svc.cluster.local
             - name: DATABASE_PORT
               value: "1433"
             - name: DATABASE_USERNAME
-              value: sa
+              value: serviceDbUser
             - name: DATABASE_PASSWORD
-              value: Bison2025
+              value: myPassword01
       automountServiceAccountToken: false
 ---
 apiVersion: v1
@@ -102,8 +108,8 @@ spec:
     app: customers
   ports:
     - name: "http"
-      port: 8082 # Port wie der Service im kubernetes-cluster erreichbar ist. Default 8080
-      targetPort: 8082 # Port welcher im Image verwendet wird. Default
+      port: 8080 # Port wie der Service im kubernetes-cluster erreichbar ist. Default 8080
+      targetPort: 8080 # Port welcher im Image verwendet wird. Default
       nodePort: 30082 # Port über welchen auf den kubernetes-cluster vom Host PC zugegriffen werden kann
 ---
 apiVersion: apps/v1
@@ -126,25 +132,28 @@ spec:
           image: "localhost:5000/services/main:latest"
           imagePullPolicy: Always
           resources:
-            limits:
+            requests:
               cpu: '0.5'
+              memory: "512Mi"
+            limits:
+              cpu: '1'
               ephemeral-storage: "100Mi"
               memory: "512Mi"
           env:
             - name: PRODUCTS_BASE_URL
-              value: http://products-service.demo.svc.cluster.local:8081
+              value: http://products-service.demo.svc.cluster.local:8080
             - name: CUSTOMERS_BASE_URL
-              value: http://customers-service.demo.svc.cluster.local:8082
+              value: http://customers-service.demo.svc.cluster.local:8080
             - name: OTEL_COLLECTOR
               value: http://otel-collector-service:4318
             - name: DATABASE_HOST
-              value: msssql.databases.svc.cluster.local
+              value: msssql-server.databases.svc.cluster.local
             - name: DATABASE_PORT
-              value: "1433"
+              value: "31433"
             - name: DATABASE_USERNAME
               value: sa
             - name: DATABASE_PASSWORD
-              value: Bison2025
+              value: ${SA_PASSWORD}
       automountServiceAccountToken: false
 ---
 apiVersion: v1

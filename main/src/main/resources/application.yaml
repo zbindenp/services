@@ -1,21 +1,6 @@
 spring:
   application:
     name: main
-  jpa:
-    open-in-view: false
-    properties:
-      hibernate:
-        session:
-          events:
-            log:
-              LOG_QUERIES_SLOWER_THAN_MS: 1
-  datasource:
-    url: jdbc:sqlserver://${DATABASE_HOST:localhost}:${DATABASE_PORT:1433};encrypt=false;trustServerCertificate=false;databaseName=${DATABASE_NAME:products}
-    username: ${DATABASE_USERNAME:sa}
-    password: ${DATABASE_PASSWORD:secure}
-  flyway:
-    enabled: true
-    baseline-on-migrate: true
 main:
   productsbaseurl: ${PRODUCTS_BASE_URL:http://localhost:8081}
   customersbaseurl: ${CUSTOMERS_BASE_URL:http://localhost:8082}

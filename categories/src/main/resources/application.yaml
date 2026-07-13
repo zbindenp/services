@@ -1,16 +1,22 @@
 spring:
   application:
-    name: customers
+    name: categories
   jpa:
+    # generate-ddl: true
     open-in-view: false
     properties:
       hibernate:
         session:
           events:
             log:
-              LOG_QUERIES_SLOWER_THAN_MS: 1
+              LOG_QUERIES_SLOWER_THAN_MS: 100
+        generate_statistics: true
+        jdbc:
+          batch_size: 1000
+        order_inserts: true
+    show-sql: false
   datasource:
-    url: jdbc:sqlserver://${DATABASE_HOST:localhost}:${DATABASE_PORT:1433};encrypt=false;trustServerCertificate=false;databaseName=${DATABASE_NAME:customers}
+    url: jdbc:sqlserver://${DATABASE_HOST:localhost}:${DATABASE_PORT:1433};encrypt=false;trustServerCertificate=false;databaseName=${DATABASE_NAME:categories}
     username: ${DATABASE_USERNAME:sa}
     password: ${DATABASE_PASSWORD:secure}
   flyway:
@@ -19,10 +25,23 @@ spring:
 server:
   port : ${APPLICATION_PORT:8080}
 management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+
   endpoints:
     web:
       exposure:
-        include: '*'
+        include: health,metrics,prometheus
+  server:
+    port: 8091
+
 otel:
   logs:
     exporter: none
