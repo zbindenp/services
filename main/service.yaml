@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: $NAME
+  name: main
   namespace: demo
 spec:
   selector:
     matchLabels:
-      app: $NAME
+      app: main
   replicas: 1
   template:
     metadata:
       labels:
-        app: $NAME
+        app: main
       annotations:
         deployed-at: "$DEPLOY"
     spec:
       containers:
-        - name: $NAME
-          image: "localhost:5000/services/$NAME:latest"
+        - name: main
+          image: "localhost:5000/services/main:latest"
           imagePullPolicy: Always
           resources:
             requests:
@@ -28,10 +28,16 @@ spec:
               ephemeral-storage: "100Mi"
               memory: "512Mi"
           env:
+            - name: PRODUCTS_BASE_URL
+              value: http://products-service.demo.svc.cluster.local:8080
+            - name: CUSTOMERS_BASE_URL
+              value: http://customers-service.demo.svc.cluster.local:8080
+            - name: OTEL_COLLECTOR
+              value: http://otel-collector-service:4318
             - name: DATABASE_HOST
-              value: msssql.databases.svc.cluster.local
+              value: msssql-server.databases.svc.cluster.local
             - name: DATABASE_PORT
-              value: "1433"
+              value: "31433"
             - name: DATABASE_USERNAME
               value: sa
             - name: DATABASE_PASSWORD
@@ -41,14 +47,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: $NAME-service
+  name: main-service
   namespace: demo
   labels:
-    app: $NAME
+    app: main
 spec:
   type: NodePort
   selector:
-    app: $NAME
+    app: main
   ports:
     - name: "http"
       port: 8080 # Port wie der Service im kubernetes-cluster erreichbar ist. Default 8080
