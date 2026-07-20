@@ -20,8 +20,8 @@ spec:
           persistentVolumeClaim:
             claimName: mssql-data-pvc
         - name: entrypoint
-          configMap:
-            name: mssql-entrypoint
+          secret:
+            secretName: mssql-entrypoint
             defaultMode: 0777
       containers:
         - name: mssql-server
@@ -86,11 +86,11 @@ spec:
     mssql.service: mssql-server
 ---
 apiVersion: v1
-kind: ConfigMap
+kind: Secret
 metadata:
   name: mssql-entrypoint
   namespace: {{ .Release.Namespace }}
-data:
+stringData:
   entrypoint.sh: |
     #!/bin/bash
 
@@ -131,11 +131,13 @@ data:
     fi
 
     # Run the setup script to create the DB and the schema in the DB
-    echo "Running setup.sql"
-    /opt/mssql-tools18/bin/sqlcmd -U sa -P $MSSQL_SA_PASSWORD -d master -i /usr/config/setup.sql -C
-  setup.sql: |
+    for f in /usr/config/setup*.sql ; do
+      echo "Running ${f}"
+      /opt/mssql-tools18/bin/sqlcmd -U sa -P $MSSQL_SA_PASSWORD -d master -i /${f} -C
+    done
 
     {{- range $dbname, $db := .Values.databases }}
+  setup_{{ $dbname }}.sql: |
     IF NOT EXISTS(SELECT * FROM sys.databases WHERE name = '{{ $dbname }}')
       CREATE DATABASE [{{ $dbname }}];
       GO
