@@ -3,6 +3,8 @@ saPassword: "mySuperSecurePassword!"
 storage: "1Gi"
 # nodePort: 31433
 #databases:
+# A secret with the name "<dbname>-connection" with connection details will be published
 #  aa:
 #    user: "aauser"
-#    password: "pwd4aa"
+#    # if not defined, a random password is generated
+#    password: "customersPwd@Home"
