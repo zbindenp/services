@@ -138,10 +138,17 @@ stringData:
 
     {{- range $dbname, $db := .Values.databases }}
   setup_{{ $dbname }}.sql: |
+    IF EXISTS (SELECT name FROM master.sys.server_principals WHERE name = '{{ $db.user }}')
+    BEGIN
+      ALTER LOGIN [{{ $db.user }}] WITH PASSWORD = N'{{ $db.password }}';
+    END
+    ELSE
+    BEGIN
+      CREATE LOGIN [{{ $db.user }}] WITH PASSWORD = N'{{ $db.password }}';
+    END
     IF NOT EXISTS(SELECT * FROM sys.databases WHERE name = '{{ $dbname }}')
       CREATE DATABASE [{{ $dbname }}];
       GO
-      CREATE LOGIN [{{ $db.user }}] WITH PASSWORD = N'{{ $db.password }}';
       USE [{{ $dbname }}];
       CREATE USER [{{ $db.user }}] FOR LOGIN [{{ $db.user }}];
       EXECUTE sp_changedbowner '{{ $db.user }}';
