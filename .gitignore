@@ -7,3 +7,5 @@ build
 .idea
 **/application-local.yaml
 gradle.properties
+
+.devbox

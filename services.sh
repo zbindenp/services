@@ -1,54 +1,47 @@
 #!/bin/sh
 
-export JAVA_HOME='/usr/java/21'
-export IMAGE_ROOT_PATH='localhost:5000/services'
+SCRIPT_DIR=$(dirname "$0")
 
-build() {
-  projects=$(gum choose --no-limit "products" "customers" "categories" "main")
-  for project in $projects; do
-    echo "Building $project"
-    ./gradlew :$project:bootJar
-    docker build -t "$IMAGE_ROOT_PATH/$project:latest" ./$project
-    docker push "$IMAGE_ROOT_PATH/$project:latest"
-  done
-}
-
-deploy() {
-  project="${1:-$(gum choose "products" "customers" "categories" "main")}"
-  export NAME=$project
-  export DEPLOY=$(date '+%Y%m%d:%H%M%S')
-  envsubst < apps/service.yaml | kubectl apply -f -
-  unset NAME
-  unset DEPLOY
+select_projects() {
+  if [[ "${1}" ]]; then
+    echo $1
+  else
+    echo $(gum choose --no-limit  products customers categories main)
+  fi
 }
 
 services() {
-  projects="${2:-$(gum choose --no-limit "products" "customers" "categories" "main")}"
+  source "${SCRIPT_DIR}/.env"
   case "$1" in
+  init)
+    echo "select JAVA_HOME"
+    JAVA_HOME=$(gum file ${JAVA_HOME}/.. --directory)
+    echo "Set Docker Registry"
+    DOCKER_REGISTRY=$(gum input --placeholder "JAVA_HOME" --value="${DOCKER_REGISTRY:-"localhost:5000"}")
+    echo "JAVA_HOME=${JAVA_HOME}" > "${SCRIPT_DIR}/.env"
+    echo "DOCKER_REGISTRY=${DOCKER_REGISTRY}" >> "${SCRIPT_DIR}/.env"
+    ;;
   build)
+    projects=($(select_projects "$2"))
     for project in $projects; do
       echo "Building $project"
       ./gradlew :$project:bootJar
     done
     ;;
   push)
+    projects=($(select_projects "$2"))
     for project in $projects; do
       echo "Pushing image $project"
-      docker build -t "$IMAGE_ROOT_PATH/$project:latest" ./$project
-      docker push "$IMAGE_ROOT_PATH/$project:latest"
+      image="${DOCKER_REGISTRY}/services/${project}:latest"
+      docker buildx build --platform linux/amd64 -t "${image}" ./$project
+      docker push "${image}"
     done
     ;;
   deploy)
-    if [[ -z "${SA_PASSWORD}" ]]; then
-      echo "env SA_PASSWORD must be set"
-      return 1
-    fi
-    for project in $projects; do
-      echo "Deploying $project"
-      export DEPLOY=$(date '+%Y%m%d:%H%M%S')
-      envsubst < "$project/service.yaml" | kubectl apply -f -
-      unset DEPLOY
-    done
+    echo "helm must be installed"
+    pushd "${SCRIPT_DIR}/deploy"
+      helm upgrade -i services . -n services --create-namespace
+    popd
     ;;
     * )
       echo "services [build|push\deploy]"
