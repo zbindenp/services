@@ -1,0 +1,21 @@
+{{- range $name, $service := .Values.services }}
+{{- if $service.ingress}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $name}}
+  namespace: {{ $.Release.Namespace}}
+spec:
+  rules:
+    - host: {{ $service.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{printf "%s-service" $name}}
+                port:
+                  number: 8080
+  {{- end }}
+  {{- end }}
