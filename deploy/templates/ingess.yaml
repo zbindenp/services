@@ -7,7 +7,7 @@ metadata:
   namespace: {{ $.Release.Namespace}}
 spec:
   rules:
-    - host: {{ $service.ingress.host }}
+    - host: {{ printf "%s.%s" $service.ingress.host $.Values.defaults.ingress.domain }}
       http:
         paths:
           - path: /

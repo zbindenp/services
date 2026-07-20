@@ -2,7 +2,7 @@ namespace: "services"
 
 mssql:
   saPassword: "myPassword4Services"
-  nodePort: 31433
+  nodePort: 31444
   databases:
     customers:
       user: "customersUser"
@@ -12,7 +12,7 @@ mssql:
       password: "productsPwd@Homesdaswdaqwdswa"
 
 defaults:
-  registry: "dreg.dev.sachi.ch"
+  registry: "localhost:5000"
   resources:
     requests:
       cpu: "0.4"
@@ -20,6 +20,8 @@ defaults:
     limits:
       cpu: "1"
       memory: "512Mi"
+  ingress:
+    domain: "example.com"
 
   livenessProbe:
     httpGet:
@@ -88,7 +90,7 @@ services:
     image:
       repository: "services/main"
     ingress:
-      host: main.k8s.dev.sachi.ch
+      host: main
     env:
       - name: PRODUCTS_BASE_URL
         value: http://products-service.services.svc.cluster.local:8080

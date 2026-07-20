@@ -17,10 +17,13 @@ services() {
     echo "select JAVA_HOME"
     JAVA_HOME=$(gum file ${JAVA_HOME}/.. --directory)
     echo "Set Docker Registry"
-    DOCKER_REGISTRY=$(gum input --placeholder "JAVA_HOME" --value="${DOCKER_REGISTRY:-"localhost:5000"}")
+    DOCKER_REGISTRY=$(gum input --placeholder "Docker Registry" --value="${DOCKER_REGISTRY:-"localhost:5000"}")
+    echo "Set Test Domain"
+    TEST_DOMAIN=$(gum input --placeholder "Test Domain" --value="${TEST_DOMAIN:-"example.com"}")
     echo "Writing env to [./.env]"
     echo "JAVA_HOME=${JAVA_HOME}" > "./.env"
     echo "DOCKER_REGISTRY=${DOCKER_REGISTRY}" >> "./.env"
+    echo "TEST_DOMAIN=${TEST_DOMAIN}" >> "./.env"
     ;;
   build)
     projects=$(select_projects "$2")
@@ -41,7 +44,7 @@ services() {
   deploy)
     echo "helm must be installed"
     pushd "./deploy"
-      helm upgrade -i services . -n services --create-namespace
+      helm upgrade -i services . -n services --create-namespace --set defaults.ingress.domain=${TEST_DOMAIN}
     popd
     ;;
     * )
