@@ -5,6 +5,8 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     mssql.service: mssql-server
+  annotations:
+    checksum/config: {{ include (print $.Template.BasePath "/connection-secret.yaml") . | sha256sum }}
 spec:
   replicas: 1
   selector:
