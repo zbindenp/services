@@ -1,0 +1,8 @@
+image: "mcr.microsoft.com/mssql/server:2025-latest"
+saPassword: "mySuperSecurePassword!"
+storage: "1Gi"
+# nodePort: 31433
+#databases:
+#  aa:
+#    user: "aauser"
+#    password: "pwd4aa"

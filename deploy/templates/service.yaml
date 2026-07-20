@@ -1,0 +1,18 @@
+{{- range $name, $service := .Values.services }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}-service
+  namespace: {{ $.Release.Namespace}}
+  labels:
+    app: {{ $name }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ $name }}
+  ports:
+    - name: "http"
+      port: 8080 # Port wie der Service im kubernetes-cluster erreichbar ist. Default 8080
+      targetPort: 8080 # Port welcher im Image verwendet wird. Default
+---
+{{- end }}
