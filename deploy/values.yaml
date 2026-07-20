@@ -54,35 +54,21 @@ defaults:
 services:
   customers:
     name: "customers"
-    replicaCount: 2
+    replicaCount: 1
     image:
       repository: "services/customers"
-
-    env:
-      - name: DATABASE_HOST
-        value: mssql-server.services.svc.cluster.local
-      - name: DATABASE_PORT
-        value: "1433"
-      - name: DATABASE_USERNAME
-        value: "customersUser"
-      - name: DATABASE_PASSWORD
-        value: "customersPwd@Home"
+    envFrom:
+      - secretRef:
+          name: customers-connection
 
   products:
     name: "products"
     replicaCount: 1
     image:
       repository: "services/products"
-
-    env:
-      - name: DATABASE_HOST
-        value: mssql-server.services.svc.cluster.local
-      - name: DATABASE_PORT
-        value: "1433"
-      - name: DATABASE_USERNAME
-        value: "productsUser"
-      - name: DATABASE_PASSWORD
-        value: "productsPwd@Homesdaswdaqwdswa"
+    envFrom:
+      - secretRef:
+          name: products-connection
 
   main:
     name: "main"
