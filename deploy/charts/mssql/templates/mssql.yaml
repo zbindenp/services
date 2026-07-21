@@ -1,0 +1,149 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mssql-server
+  namespace: {{ .Release.Namespace }}
+  labels:
+    mssql.service: mssql-server
+  annotations:
+    checksum/config: {{ include (print $.Template.BasePath "/connection-secret.yaml") . | sha256sum }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      mssql.service: mssql-server
+  template:
+    metadata:
+      labels:
+        mssql.service: mssql-server
+    spec:
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: mssql-data-pvc
+        - name: entrypoint
+          secret:
+            secretName: mssql-entrypoint
+            defaultMode: 0777
+        {{- range $dbname, $db := .Values.databases }}
+        - name: {{ printf "mssql-setup-%s" $dbname}}
+          secret:
+            secretName: {{ printf "mssql-setup-%s" $dbname}}
+            defaultMode: 0777
+        {{- end }}
+      containers:
+        - name: mssql-server
+          image: {{ .Values.image}}
+          command: ["/bin/sh", "-c"]
+          args: ["/usr/config/entrypoint.sh"]
+          ports:
+            - containerPort: 1433
+              protocol: TCP
+          env:
+            - name: ACCEPT_EULA
+              value: 'Y'
+            - name: MSSQL_SA_PASSWORD
+              value: {{ .Values.saPassword }}
+          resources: {}
+          volumeMounts:
+            - name: data-volume
+              mountPath: /var/opt/mssql
+            - name: entrypoint
+              mountPath: /usr/config/
+            {{- range $dbname, $db := .Values.databases }}
+            - name: {{ printf "mssql-setup-%s" $dbname}}
+              mountPath: /usr/{{ printf "setup-%s" $dbname}}
+            {{- end }}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mssql-data-pvc
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.storage}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mssql-server
+  namespace: {{ .Release.Namespace }}
+  labels:
+    mssql.service: mssql-server
+spec:
+  {{- if .Values.nodePort }}
+  type: NodePort
+  {{- end }}
+  ports:
+    - name: '1433'
+      protocol: TCP
+      port: 1433
+      targetPort: 1433
+      {{- if .Values.nodePort }}
+      nodePort: {{ .Values.nodePort }}
+      {{- end }}
+  selector:
+    mssql.service: mssql-server
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mssql-entrypoint
+  namespace: {{ .Release.Namespace }}
+stringData:
+  entrypoint.sh: |
+    #!/bin/bash
+
+    # Start the script to create the DB and user
+    /usr/config/configure-db.sh &
+    # Start SQL Server
+    /opt/mssql/bin/sqlservr
+  configure-db.sh: |
+    #!/bin/bash
+
+    # Wait 60 seconds for SQL Server to start up by ensuring that
+    # calling SQLCMD does not return an error code, which will ensure that sqlcmd is accessible
+    # and that system and user databases return "0" which means all databases are in an "online" state
+    # https://docs.microsoft.com/en-us/sql/relational-databases/system-catalog-views/sys-databases-transact-sql?view=sql-server-2017
+
+    DBSTATUS=1
+    ERRCODE=1
+    i=0
+
+    while [[ $i -lt 60 ]]; do
+      if [[ "$DBSTATUS" == "0" ]]; then
+        # echo "DBSTATUS [${DBSTATUS}] break"
+        break
+      fi
+      i=$(($i+1))
+      DBSTATUS=$(/opt/mssql-tools18/bin/sqlcmd -h -1 -t 1 -U sa -P $MSSQL_SA_PASSWORD -Q "SET NOCOUNT ON; select SUM(state) from sys.databases" -C)
+      DBSTATUS=$(echo "$DBSTATUS" | xargs)
+      ERRCODE=$?
+      sleep 1
+      # echo "waited [${i}] times"
+      # echo "DBSTATUS: [${DBSTATUS}]"
+      # echo "ERRCODE: [${ERRCODE}]"
+    done
+
+    if [[ $DBSTATUS -ne 0 ]] || [[ $ERRCODE -ne 0 ]]; then
+      echo "SQL Server took more than 60 seconds to start up or one or more databases are not in an ONLINE state: $DBSTATUS, $ERRCODE"
+      exit 1
+    fi
+
+    # Run the setup script to create the DB and the schema in the DB
+    for f in /usr/setup*/ ; do
+      echo "Running ${f}setup.sql"
+      /opt/mssql-tools18/bin/sqlcmd -U sa -P $MSSQL_SA_PASSWORD -d master -i ${f}setup.sql -C
+    done

@@ -1,0 +1,52 @@
+plugins {
+	id 'java'
+	alias libs.plugins.spring.boot4
+	alias libs.plugins.spring.dependecy.management
+}
+
+dependencyManagement {
+	imports {
+		mavenBom("io.opentelemetry:opentelemetry-bom:1.37.0")
+	}
+}
+
+group = 'ch.sachi.services'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	sourceCompatibility = '21'
+}
+
+repositories {
+	if (project.hasProperty('REPO1_URL')) {
+		maven {
+			url REPO1_URL
+		}
+	} else {
+		mavenCentral()
+	}
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-flyway'
+
+	runtimeOnly libs.flyway.sqlserver
+	runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc'
+	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+bootBuildImage {
+//	builder = 'paketobuildpacks/builder:tiny'
+	environment = [
+			'BP_NATIVE_IMAGE_BUILD_ARGUMENTS': '-H:+AddAllCharsets'
+	]
+}
+
+
