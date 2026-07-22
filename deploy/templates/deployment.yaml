@@ -13,6 +13,9 @@ spec:
     metadata:
       labels:
         app: {{ $name }}
+        {{- range $key, $value := $service.labels }}
+        {{ $key }}: {{ $value }}
+        {{- end }}
 {{/*      annotations:*/}}
 {{/*        deployed-at: "{{ now }}"*/}}
     spec:

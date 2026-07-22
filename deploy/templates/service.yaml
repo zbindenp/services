@@ -9,7 +9,11 @@ metadata:
 spec:
   type: ClusterIP
   selector:
+    {{- if $service.selector }}
+      {{- toYaml $service.selector | nindent 4 }}
+    {{- else }}
     app: {{ $name }}
+    {{- end }}
   ports:
     - name: "http"
       port: 8080 # Port wie der Service im kubernetes-cluster erreichbar ist. Default 8080
