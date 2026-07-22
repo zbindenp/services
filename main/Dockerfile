@@ -10,6 +10,7 @@ ENV DATABASE_PASSWORD="password2024"
 ENV OTEL_COLLECTOR="http://172.28.140.162:4318"
 ENV PRODUCTS_BASE_URL="http://products:8081"
 ENV CUSTOMERS_BASE_URL="http://customers:8082"
+ENV LOAD_BASE_URL="http://load:8083"
 
 ENV JAVA_OPTS="-XX:MaxRAMPercentage=80 -XX:+UseG1GC -XX:+UseStringDeduplication"
 

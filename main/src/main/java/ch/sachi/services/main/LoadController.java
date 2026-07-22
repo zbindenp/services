@@ -13,10 +13,10 @@ import java.time.LocalDateTime;
 
 @RestController
 public class LoadController {
-  private final CustomerService customerService;
+  private final LoadService loadService;
 
-  public LoadController(CustomerService customerService) {
-    this.customerService = customerService;
+  public LoadController(LoadService loadService) {
+    this.loadService = loadService;
   }
 
   @GetMapping("load")
@@ -27,22 +27,28 @@ public class LoadController {
     final Logger logger = LoggerFactory.getLogger(getClass());
     boolean useWebclient = "wc".equalsIgnoreCase(type);
     if (useWebclient) {
-      logger.info("LoadController: Start getting customers by WebClient");
+      logger.info("LoadController: Start getting load by WebClient");
     } else {
-      logger.info("LoadController: Start getting customers by RestTemplate");
+      logger.info("LoadController: Start getting load by RestTemplate");
     }
     StringBuilder result = new StringBuilder();
     final LocalDateTime now = LocalDateTime.now();
     result.append("<h2>").append(now).append("</h2>");
     result.append("<h2>LoadController called from ").append(InetAddress.getLocalHost().getHostName()).append(" with ").append(type).append(":</h2>");
-    long start = System.currentTimeMillis();
+    final long start = System.currentTimeMillis();
+    result.append("<table border=\"1\"><tr><th>pod</th><th>Duration [ms]</th><th>response</th></tr>");
     for (int i = 0; i < 20; i++) {
-      final String hostname = customerService.getLoad(useWebclient, connectionHeader);
-      logger.info("LoadController: We called [{}] ", hostname);
-      result.append(hostname).append("<br/>");
+      result.append("<tr>");
+      final LoadResponse response = loadService.getLoad(useWebclient, connectionHeader);
+      result.append("<td>").append(response.hostname()).append("</td>");
+      logger.info("LoadController: We called [{}] ", response);
+      result.append("<td align=\"right\">").append(response.durationMillis()).append("</td>");
+      result.append("<td>").append(response.headers()).append("</td>");
+      result.append("</tr>");
     }
+    result.append("</table>");
     long durationMillis = System.currentTimeMillis() - start;
-//    result.append("<br/>Duration: ").append(durationMillis).append("ms");
+    result.append("<br/>Duration: ").append(durationMillis).append("ms");
     logger.info("LoadController: -------------------");
     return ResponseEntity.ok(result);
   }
