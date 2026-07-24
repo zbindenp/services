@@ -17,7 +17,7 @@ spring:
     enabled: true
     baseline-on-migrate: true
 server:
-  port : 8081
+  port : 8080
 management:
   endpoint:
     health:
@@ -34,12 +34,14 @@ management:
       exposure:
         include: health,metrics,prometheus
   server:
-    port: 8091
+    port: 8081
 
 otel:
   logs:
     exporter: none
   metrics:
+    exporter: none
+  traces:
     exporter: none
   instrumentation:
     spring-web:
