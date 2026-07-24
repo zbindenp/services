@@ -4,9 +4,12 @@
 # Ignore Gradle build output directory
 build
 
-.idea
+.idea/
+*.iml
+**/.iml
 **/application-local.yaml
 gradle.properties
 
 .devbox
 /.env
+/deploy/charts/*.tgz

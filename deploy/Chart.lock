@@ -1,0 +1,6 @@
+dependencies:
+- name: mssql-dev
+  repository: https://raw.githubusercontent.com/zbindenp/mssqlserver/gh-pages
+  version: 0.1.1
+digest: sha256:5cef2607bee9ba1b51881738605a4b06623d79a28b0064ee3603359a3981039d
+generated: "2026-07-23T21:55:28.694258+02:00"
