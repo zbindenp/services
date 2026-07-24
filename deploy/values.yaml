@@ -6,10 +6,9 @@ mssql:
   databases:
     customers:
       user: "customersUser"
-      password: "customersPwd@Home"
     products:
       user: "productsUser"
-      password: "productsPwd@Homesdaswdaqwdswa"
+      password: "productsPwd@Home"
 
 defaults:
   registry: "localhost:5000"
@@ -54,8 +53,10 @@ defaults:
 services:
   customers:
     name: "customers"
-    replicaCount: 3
+    replicaCount: 1
     cpuBoost: true
+    labels:
+      api: load
     image:
       repository: "services/customers"
     envFrom:
@@ -82,7 +83,7 @@ services:
         cpu: "0.4"
         memory: "512Mi"
       limits:
-        cpu: "0.4"
+        cpu: "1.2"
         memory: "512Mi"
     ingress:
       host: main
@@ -91,3 +92,50 @@ services:
         value: http://products-service.services.svc.cluster.local:8080
       - name: CUSTOMERS_BASE_URL
         value: http://customers-service.services.svc.cluster.local:8080
+      - name: LOAD_BASE_URL
+        value: http://load-service.services.svc.cluster.local:8080
+
+
+  load:
+    name: "load"
+    replicaCount: 3
+    image:
+      repository: "services/load"
+    labels:
+      api: load
+    selector:
+      api: load
+    resources:
+      requests:
+        cpu: "0.05"
+        memory: "128Mi"
+      limits:
+        cpu: "0.1"
+        memory: "128Mi"
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: 8080
+        scheme: HTTP
+      timeoutSeconds: 1
+      periodSeconds: 20
+      successThreshold: 1
+      failureThreshold: 10
+    readinessProbe:
+      httpGet:
+        path: /healthz
+        port: 8080
+        scheme: HTTP
+      timeoutSeconds: 10
+      periodSeconds: 20
+      successThreshold: 1
+      failureThreshold: 3
+    startupProbe:
+      httpGet:
+        path: /healthz
+        port: 8080
+        scheme: HTTP
+      timeoutSeconds: 1
+      periodSeconds: 2
+      successThreshold: 1
+      failureThreshold: 30

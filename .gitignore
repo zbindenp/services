@@ -4,7 +4,7 @@
 # Ignore Gradle build output directory
 build
 
-.idea
+.idea/
 **/application-local.yaml
 gradle.properties
 
