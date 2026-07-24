@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module version="4">
+  <component name="AdditionalModuleElements">
+    <content url="file://$MODULE_DIR$/../.." dumb="true">
+      <excludeFolder url="file://$MODULE_DIR$/../../Azure/.terraform" />
+      <excludeFolder url="file://$MODULE_DIR$/../../Waldweid1/HomeInfrastructure/proxmox/.terraform" />
+      <excludeFolder url="file://$MODULE_DIR$/../../Waldweid1/HomeInfrastructure/unifi/.terraform" />
+    </content>
+  </component>
+</module>

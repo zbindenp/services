@@ -5,6 +5,8 @@
 build
 
 .idea/
+*.iml
+**/.iml
 **/application-local.yaml
 gradle.properties
 
