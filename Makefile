@@ -7,7 +7,7 @@ SERVICES := load products customers categories main
 -include .env
 export JAVA_HOME DOCKER_REGISTRY_PUSH DOCKER_REGISTRY_PULL TEST_DOMAIN
 
-.PHONY: help init build push deploy
+.PHONY: help init build push helm-update helm-repos deploy
 
 help:
 	@echo "Usage:"
@@ -55,6 +55,17 @@ push:
 			docker buildx build --platform linux/amd64 -t "$$image" ./$$project; \
 			docker push "$$image"; \
 		done
+
+helm-repos:
+	@set -euo pipefail; \
+		cd deploy; \
+		helm repo add mssqlserver https://raw.githubusercontent.com/zbindenp/mssqlserver/gh-pages
+
+helm-update: helm-repos
+	@set -euo pipefail; \
+		cd deploy; \
+		helm dependency update .; \
+		helm dependency build . --skip-refresh
 
 deploy:
 	@test -f .env || { echo "No .env found; run 'make init' first" >&2; exit 1; }
