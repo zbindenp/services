@@ -72,5 +72,6 @@ deploy:
 		cd deploy; \
 		helm upgrade -i services . -n services --create-namespace \
 			--set defaults.ingress.domain="$$TEST_DOMAIN" \
+			--set jaeger.jaeger.ingress.hosts[0]="jaeger.$$TEST_DOMAIN" \
 			--set defaults.registry="$$DOCKER_REGISTRY_PULL" \
 			--history-max 3

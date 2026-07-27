@@ -86,7 +86,7 @@ jaeger:
       enabled: true
       ingressClassName: traefik
       hosts:
-        - jaeger.k8s.dev.sachi.ch
+        - jaeger.example.com
 
 services:
   customers:
