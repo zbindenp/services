@@ -64,8 +64,7 @@ helm-repos:
 helm-update: helm-repos
 	@set -euo pipefail; \
 		cd deploy; \
-		helm dependency update .; \
-		helm dependency build . --skip-refresh
+		helm dependency update .
 
 deploy:
 	@test -f .env || { echo "No .env found; run 'make init' first" >&2; exit 1; }

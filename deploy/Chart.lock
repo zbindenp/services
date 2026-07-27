@@ -2,5 +2,11 @@ dependencies:
 - name: mssql-dev
   repository: https://raw.githubusercontent.com/zbindenp/mssqlserver/gh-pages
   version: 0.1.1
-digest: sha256:5cef2607bee9ba1b51881738605a4b06623d79a28b0064ee3603359a3981039d
-generated: "2026-07-23T21:55:28.694258+02:00"
+- name: opentelemetry-collector
+  repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+  version: 0.165.0
+- name: jaeger
+  repository: https://jaegertracing.github.io/helm-charts
+  version: 4.11.1
+digest: sha256:a69ec04e01aa55357b2b0f47b1d8b042dc18f56c90dde58f7d9be61a7273c34e
+generated: "2026-07-24T13:50:24.998883+02:00"

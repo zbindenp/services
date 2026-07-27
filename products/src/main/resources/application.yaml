@@ -39,10 +39,10 @@ management:
 otel:
   logs:
     exporter: none
-  metrics:
-    exporter: none
-  traces:
-    exporter: none
+#  metrics:
+#    exporter: none
+#  traces:
+#    exporter: none
   instrumentation:
     spring-web:
       enabled: true

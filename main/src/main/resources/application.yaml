@@ -26,8 +26,8 @@ management:
 otel:
   logs:
     exporter: none
-  metrics:
-    exporter: none
+#  metrics:
+#    exporter: none
   instrumentation:
     spring-web:
       enabled: true
