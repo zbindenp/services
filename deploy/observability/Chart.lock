@@ -1,0 +1,6 @@
+dependencies:
+- name: observability
+  repository: https://raw.githubusercontent.com/zbindenp/helm-charts/gh-pages
+  version: 0.1.0
+digest: sha256:c40e0d92425ef4c53cc0f18f1e18bede2007180330a911d4c96d4fa87b8a8b6a
+generated: "2026-07-29T14:56:47.11884+02:00"

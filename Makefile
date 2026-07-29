@@ -7,7 +7,7 @@ SERVICES := load products customers categories main
 -include .env
 export JAVA_HOME DOCKER_REGISTRY_PUSH DOCKER_REGISTRY_PULL TEST_DOMAIN
 
-.PHONY: help init build push helm-update helm-repos deploy
+.PHONY: help init build push helm-update helm-repos deploy observability
 
 help:
 	@echo "Usage:"
@@ -56,22 +56,25 @@ push:
 			docker push "$$image"; \
 		done
 
-helm-repos:
-	@set -euo pipefail; \
-		cd deploy; \
-		helm repo add mssqlserver https://raw.githubusercontent.com/zbindenp/mssqlserver/gh-pages
-
 helm-update: helm-repos
 	@set -euo pipefail; \
-		cd deploy; \
+		cd deploy/services; \
 		helm dependency update .
 
 deploy:
 	@test -f .env || { echo "No .env found; run 'make init' first" >&2; exit 1; }
 	@set -euo pipefail; \
-		cd deploy; \
+		cd deploy/services; \
 		helm upgrade -i services . -n services --create-namespace \
 			--set defaults.ingress.domain="$$TEST_DOMAIN" \
 			--set jaeger.jaeger.ingress.hosts[0]="jaeger.$$TEST_DOMAIN" \
 			--set defaults.registry="$$DOCKER_REGISTRY_PULL" \
+			--history-max 3
+
+observability:
+	@test -f .env || { echo "No .env found; run 'make init' first" >&2; exit 1; }
+	@set -euo pipefail; \
+		cd deploy/observability; \
+		helm upgrade -i observability . -n observability --create-namespace \
+			--set observability.jaeger.jaeger.ingress.hosts[0]="jaeger.$$TEST_DOMAIN" \
 			--history-max 3

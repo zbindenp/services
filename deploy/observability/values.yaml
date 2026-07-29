@@ -1,0 +1,63 @@
+observability:
+  otel-stack:
+    collectors:
+      pzbi:
+        suffix: pzbi
+        enabled: true
+
+        config:
+          processors:
+            tail_sampling:
+              decision_wait: 10s
+              num_traces: 100
+              expected_new_traces_per_sec: 10
+              policies:
+                [
+                  {
+                    name: errors-policy,
+                    type: status_code,
+                    status_code: { status_codes: [ ERROR ] },
+                  },
+                  {
+                    name: randomized-policy,
+                    type: probabilistic,
+                    probabilistic: { sampling_percentage: 25 },
+                  },
+                ]
+            filter/drop_actuator_traces:
+              traces:
+                span:
+                  - IsMatch(attributes["http.route"], "/actuator/.*")
+            filter/drop_actuator_metrics:
+              metrics:
+                datapoint:
+                  - IsMatch(attributes["http.route"], "/actuator/.*")
+
+          exporters:
+            otlp/jaeger:
+              endpoint: "observability-jaeger.observability.svc.cluster.local:4317"
+              tls:
+                insecure: true
+
+          service:
+            pipelines:
+              traces:
+                receivers: [ otlp ]
+                processors: [ memory_limiter, filter/drop_actuator_traces, tail_sampling ]
+                exporters: [ otlp/jaeger, debug ]
+              metrics:
+                receivers: [ otlp, kubeletstats ]
+                processors: [ memory_limiter, filter/drop_actuator_metrics ]
+                exporters: [ debug ]
+              logs:
+                receivers: [ otlp ]
+                processors: [ memory_limiter ]
+                exporters: [ debug ]
+
+  jaeger:
+    enabled: true
+    jaeger:
+      ingress:
+        enabled: true
+        hosts:
+          - jaeger.example.com

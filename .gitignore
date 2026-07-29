@@ -12,5 +12,5 @@ gradle.properties
 
 .devbox
 /.env
-/deploy/charts/*.tgz
-/deploy/test.yaml
+/deploy/**/charts/*.tgz
+/deploy/**/test.yaml
