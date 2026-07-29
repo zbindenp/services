@@ -51,6 +51,11 @@ defaults:
     successThreshold: 1
     failureThreshold: 36
 
+#otel:
+#  enabled: true
+#  serviceName: "observability-daemon-collector"
+#  serviceNamespace: "observability"
+
 services:
   customers:
     name: "customers"

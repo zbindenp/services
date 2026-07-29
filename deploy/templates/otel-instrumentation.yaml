@@ -1,4 +1,7 @@
 {{- if .Capabilities.APIVersions.Has "opentelemetry.io/v1alpha1" }}
+{{- if hasKey .Values "otel"  }}
+{{- $otel := .Values.otel  }}
+{{- if and (hasKey $otel "enabled") (eq $otel.enabled true)  }}
 apiVersion: opentelemetry.io/v1alpha1
 kind: Instrumentation
 metadata:
@@ -8,11 +11,13 @@ metadata:
     "helm.sh/hook": pre-install
 spec:
   exporter:
-    endpoint: "http://observability-pzbi-collector.observability.svc.cluster.local:4318"
+    endpoint: {{- printf "http://%s.%s.svc.cluster.local:4318" .Values.otel.serviceName .Values.otel.serviceNamespace | quote }}
   propagators:
     - tracecontext
     - baggage
   sampler:
     type: parentbased_traceidratio
     argument: "1"
+{{- end }}
+{{- end }}
 {{- end }}
