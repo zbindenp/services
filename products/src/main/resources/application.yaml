@@ -17,32 +17,27 @@ spring:
     enabled: true
     baseline-on-migrate: true
 server:
-  port : 8080
+  port : ${APPLICATION_PORT:8080}
 management:
-  endpoint:
-    health:
-      probes:
-        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
   health:
     livenessState:
       enabled: true
     readinessState:
       enabled: true
-
-  endpoints:
-    web:
-      exposure:
-        include: health,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
   server:
-    port: 8081
+    port: ${MANAGEMENT_PORT:8081}
 
 otel:
   logs:
     exporter: none
-#  metrics:
-#    exporter: none
-#  traces:
-#    exporter: none
   instrumentation:
     spring-web:
       enabled: true
@@ -50,10 +45,3 @@ otel:
       enabled: true
       experimental:
         capture-mdc-attributes: '*'
-  exporter:
-    otlp:
-      traces:
-        endpoint: ${OTEL_COLLECTOR:http://localhost:4318}/v1/traces
-      metrics:
-        endpoint: ${OTEL_COLLECTOR:http://localhost:4318}/v1/metrics
-

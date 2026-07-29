@@ -4,6 +4,10 @@ kind: Deployment
 metadata:
   name: {{ $name }}
   namespace: {{ $.Release.Namespace}}
+  annotations:
+      {{- range $key, $value := $service.annotations }}
+      {{ $key }}: {{ $value | toString | quote }}
+      {{- end }}
 spec:
   selector:
     matchLabels:
@@ -16,7 +20,10 @@ spec:
         {{- range $key, $value := $service.labels }}
         {{ $key }}: {{ $value }}
         {{- end }}
-{{/*      annotations:*/}}
+      annotations:
+          {{- range $key, $value := $service.annotations }}
+          {{ $key }}: {{ $value | toString | quote }}
+          {{- end }}
 {{/*        deployed-at: "{{ now }}"*/}}
     spec:
       containers:

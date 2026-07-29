@@ -12,14 +12,5 @@ appVersion: "1.16.0"
 dependencies:
   - name: mssql-dev
     alias: mssql
-    version: "0.1.1"
-    repository: "https://raw.githubusercontent.com/zbindenp/mssqlserver/gh-pages"
-  - name: opentelemetry-collector
-    alias: otel
-    version: "0.165.0"
-    repository: "https://open-telemetry.github.io/opentelemetry-helm-charts"
-    condition: otel.enabled
-  - name: jaeger
-    version: "4.11.1"
-    repository: "https://jaegertracing.github.io/helm-charts"
-    condition: jaeger.enabled
+    version: "0.1.2"
+    repository: "https://raw.githubusercontent.com/zbindenp/helm-charts/gh-pages"

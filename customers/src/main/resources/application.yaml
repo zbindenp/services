@@ -46,10 +46,3 @@ otel:
       enabled: true
       experimental:
         capture-mdc-attributes: '*'
-  exporter:
-    otlp:
-      traces:
-        endpoint: ${OTEL_COLLECTOR:http://localhost:4318}/v1/traces
-      metrics:
-        endpoint: ${OTEL_COLLECTOR:http://localhost:4318}/v1/metrics
-

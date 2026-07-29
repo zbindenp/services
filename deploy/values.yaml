@@ -6,6 +6,7 @@ mssql:
   databases:
     customers:
       user: "customersUser"
+      password: "customerswd@Home"
     products:
       user: "productsUser"
       password: "productsPwd@Home"
@@ -17,7 +18,7 @@ defaults:
       cpu: "0.2"
       memory: "512Mi"
     limits:
-      cpu: "0.6"
+#      cpu: "0.6"
       memory: "512Mi"
   ingress:
     domain: "example.com"
@@ -50,44 +51,6 @@ defaults:
     successThreshold: 1
     failureThreshold: 36
 
-
-otel_collector_url: &otel_collector "http://services-otel.services.svc.cluster.local:4318"
-otel:
-  enabled: true
-  mode: "deployment"
-  image:
-    repository: "ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector"
-  config:
-    receivers:
-      zipkin: null
-      otlp:
-        protocols:
-          grpc:
-            endpoint: ${env:MY_POD_IP}:4317
-          http:
-            endpoint: ${env:MY_POD_IP}:4318
-    exporters:
-      debug:
-        verbosity: normal
-      otlp:
-        endpoint: "services-jaeger.services.svc.cluster.local:4317"
-        tls:
-          insecure: true
-    service:
-      pipelines:
-        traces:
-          exporters: [ otlp, debug ]
-          processors: [ batch ]
-          receivers: [ otlp, jaeger ]
-jaeger:
-  enabled: true
-  jaeger:
-    ingress:
-      enabled: true
-      ingressClassName: traefik
-      hosts:
-        - jaeger.example.com
-
 services:
   customers:
     name: "customers"
@@ -95,33 +58,33 @@ services:
     cpuBoost: true
     labels:
       api: load
+    annotations:
+      instrumentation.opentelemetry.io/inject-java: true
     image:
       repository: "services/customers"
     envFrom:
       - secretRef:
           name: customers-connection
-    env:
-      - name: OTEL_COLLECTOR
-        value: *otel_collector
 
   products:
     name: "products"
     replicaCount: 1
     cpuBoost: true
+    annotations:
+      instrumentation.opentelemetry.io/inject-java: true
     image:
       repository: "services/products"
     envFrom:
       - secretRef:
           name: products-connection
-    env:
-      - name: OTEL_COLLECTOR
-        value: *otel_collector
 
   main:
     name: "main"
     replicaCount: 1
     image:
       repository: "services/main"
+    annotations:
+      instrumentation.opentelemetry.io/inject-java: true
     resources:
       requests:
         cpu: "0.4"
@@ -138,8 +101,6 @@ services:
         value: http://customers-service.services.svc.cluster.local:8080
       - name: LOAD_BASE_URL
         value: http://load-service.services.svc.cluster.local:8080
-      - name: OTEL_COLLECTOR
-        value: *otel_collector
 
 
   load:
@@ -149,6 +110,9 @@ services:
       repository: "services/load"
     labels:
       api: load
+    annotations:
+      instrumentation.opentelemetry.io/inject-go: true
+      instrumentation.opentelemetry.io/otel-go-auto-target-exe: '/root/load'
     selector:
       api: load
     resources:

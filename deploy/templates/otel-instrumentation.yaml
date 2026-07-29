@@ -1,0 +1,18 @@
+{{- if .Capabilities.APIVersions.Has "opentelemetry.io/v1alpha1" }}
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: otel-instrumentation
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-install
+spec:
+  exporter:
+    endpoint: "http://observability-pzbi-collector.observability.svc.cluster.local:4318"
+  propagators:
+    - tracecontext
+    - baggage
+  sampler:
+    type: parentbased_traceidratio
+    argument: "1"
+{{- end }}
