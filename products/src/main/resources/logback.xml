@@ -1,10 +1,6 @@
 <configuration>
-    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>
-                %d{HH:mm:ss.SSS} [%32X{trace_id:-none}] %-5level [%thread] %logger{36} - %msg%n
-            </pattern>
-        </encoder>
+    <appender name="jsonConsole" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
     </appender>
     <appender name="otelConsole"
               class="io.opentelemetry.instrumentation.logback.mdc.v1_0.OpenTelemetryAppender">
@@ -12,7 +8,7 @@
         <captureCodeAttributes>true</captureCodeAttributes>
         <captureMarkerAttribute>true</captureMarkerAttribute>
         <captureMdcAttributes>*</captureMdcAttributes>
-        <appender-ref ref="console" />
+        <appender-ref ref="jsonConsole" />
     </appender>
 
     <root level="INFO">
