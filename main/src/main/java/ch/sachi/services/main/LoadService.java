@@ -31,35 +31,22 @@ public class LoadService {
         webclient = webClientBuilder.baseUrl(loadbaseurl).build();
     }
 
-    Mono<ResponseEntity<String>> callLoad(boolean useWebClient, String conectionHeader, long sleepMillis) {
-        final HttpHeaders headers = new HttpHeaders();
-        headers.setConnection(conectionHeader);
-        if (useWebClient) {
-            return webclient.get().uri("/load?sleepMillis=" + sleepMillis).retrieve().toEntity(String.class);
-        }
-        final HttpEntity request = new HttpEntity(headers);
-        final ResponseEntity<String> response = restTemplate.exchange("/load?sleepMillis=" + sleepMillis, HttpMethod.GET, request, String.class);
-        return Mono.just(response);
-
-    }
-
     Mono<LoadResponse> callTimedLoad(boolean useWebClient, String conectionHeader, long sleepMillis) {
-        final HttpHeaders headers = new HttpHeaders();
-        headers.setConnection(conectionHeader);
-        if (useWebClient) {
-            return webclient.get().uri("/load?sleepMillis=" + sleepMillis).retrieve().toEntity(String.class)
-                    .timed()
-                    .map(timedResult ->
-                            createLoadResponse(timedResult.get(), timedResult.elapsed())
-                    );
-        }
-        final HttpEntity request = new HttpEntity(headers);
-        final ResponseEntity<String> response = restTemplate.exchange("/load?sleepMillis=" + sleepMillis, HttpMethod.GET, request, String.class);
-        return Mono.just(response)
+        return prepareCall(useWebClient, conectionHeader, sleepMillis)
                 .timed()
                 .map(timedResult ->
-                        createLoadResponse(timedResult.get(), timedResult.elapsed())
-                );
+                        createLoadResponse(timedResult.get(), timedResult.elapsed()));
+    }
+
+    private Mono<ResponseEntity<String>> prepareCall(boolean useWebClient, String conectionHeader, long sleepMillis) {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setConnection(conectionHeader);
+        final String uri = "/load?sleepMillis=" + sleepMillis;
+        if (useWebClient) {
+            return webclient.get().uri(uri).retrieve().toEntity(String.class);
+        }
+        final HttpEntity<String> request = new HttpEntity<>(headers);
+        return Mono.fromCallable(() -> restTemplate.exchange(uri, HttpMethod.GET, request, String.class));
     }
 
 
