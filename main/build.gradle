@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	alias libs.plugins.spring.boot
 	alias libs.plugins.spring.dependecy.management
+	alias libs.plugins.jib
 }
 
 dependencyManagement {
@@ -50,3 +51,32 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
+
+jib {
+	allowInsecureRegistries = true
+	from {
+		image = 'eclipse-temurin:25-jre-alpine'
+	}
+	to {
+		image = "${System.getenv('DOCKER_REGISTRY_PUSH')}/services/${project.name}"
+		tags = ['latest']
+	}
+	container {
+
+		jvmFlags = [
+				'-Djava.security.egd=file:/dev/./urandom',
+				'-Duser.timezone=Europe/Zurich',
+				'-XX:MaxRAMPercentage=80',
+				'-XX:+UseG1GC',
+				'-XX:+UseStringDeduplication',
+				'-XX:+UseCompactObjectHeaders'
+		]
+		environment = [
+				'PRODUCTS_BASE_URL'  : 'http://products:8081',
+				'CUSTOMERS_BASE_URL' : 'http://customers:8082',
+				'LOAD_BASE_URL' 	 : 'http://load:8083',
+				'OTEL_COLLECTOR'     : 'http://172.28.140.162:4318'
+		]
+		ports = ['8080']
+	}
+}

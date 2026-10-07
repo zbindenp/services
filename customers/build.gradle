@@ -1,50 +1,80 @@
 plugins {
-	id 'java'
-	alias libs.plugins.spring.boot
-	alias libs.plugins.spring.dependecy.management
+    id 'java'
+    alias libs.plugins.spring.boot
+    alias libs.plugins.spring.dependecy.management
+	alias libs.plugins.jib
 }
 
 dependencyManagement {
-	imports {
-		mavenBom("io.opentelemetry:opentelemetry-bom:1.37.0")
-		mavenBom("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:2.3.0-alpha")
-	}
+    imports {
+        mavenBom("io.opentelemetry:opentelemetry-bom:1.37.0")
+        mavenBom("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:2.3.0-alpha")
+    }
 }
 
 group = 'ch.sachi.services'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	sourceCompatibility = '21'
+    sourceCompatibility = '21'
 }
 
 repositories {
-	if (project.hasProperty('REPO1_URL')) {
-		maven {
-			url REPO1_URL
-		}
-	} else {
-		mavenCentral()
-	}
+    if (project.hasProperty('REPO1_URL')) {
+        maven {
+            url REPO1_URL
+        }
+    } else {
+        mavenCentral()
+    }
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter'
-	runtimeOnly 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0'
-	runtimeOnly 'io.opentelemetry.instrumentation:opentelemetry-logback-mdc-1.0'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter'
+    runtimeOnly 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0'
+    runtimeOnly 'io.opentelemetry.instrumentation:opentelemetry-logback-mdc-1.0'
 
-	implementation libs.flyway.core
-	runtimeOnly libs.flyway.sqlserver
-	runtimeOnly libs.logstash.encoder
-	runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc'
-	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation libs.flyway.core
+    runtimeOnly libs.flyway.sqlserver
+    runtimeOnly libs.logstash.encoder
+    runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc'
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
 
+jib {
+    allowInsecureRegistries = true
+    from {
+        image = 'eclipse-temurin:25-jre-alpine'
+    }
+    to {
+        image = "${System.getenv('DOCKER_REGISTRY_PUSH')}/services/${project.name}"
+        tags = ['latest']
+    }
+    container {
+
+        jvmFlags = [
+                '-Djava.security.egd=file:/dev/./urandom',
+                '-Duser.timezone=Europe/Zurich',
+                '-XX:MaxRAMPercentage=80',
+                '-XX:+UseG1GC',
+                '-XX:+UseStringDeduplication',
+                '-XX:+UseCompactObjectHeaders'
+        ]
+        environment = [
+                'DATABASE_HOST'    : '172.28.140.162',
+                'DATABASE_PORT'    : '31433',
+                'DATABASE_USERNAME': 'sa',
+                'DATABASE_PASSWORD': 'MyPassword2024',
+                'OTEL_COLLECTOR'   : 'http://172.28.140.162:4318'
+        ]
+        ports = ['8080']
+    }
+}
