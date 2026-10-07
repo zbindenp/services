@@ -11,7 +11,7 @@ metadata:
     "helm.sh/hook": pre-install
 spec:
   exporter:
-    endpoint: {{- printf "http://%s.%s.svc.cluster.local:4318" .Values.otel.serviceName .Values.otel.serviceNamespace | quote }}
+    endpoint: {{ printf "http://%s.%s.svc.cluster.local:4318" .Values.otel.serviceName .Values.otel.serviceNamespace | quote }}
   propagators:
     - tracecontext
     - baggage

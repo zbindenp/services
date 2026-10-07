@@ -1,14 +1,49 @@
+secrets:
+  otel-collector-secrets:
+    PROM_USERNAME: "tbd"
+    PROM_PASSWORD: "tbd"
+    LOGS_USERNAME: "tbd"
+    LOGS_PASSWORD: "tbd"
+    TRACES_USERNAME: "tbd"
+    TRACES_PASSWORD: "tbd"
+
 observability:
   otel-stack:
+    resources:
+      limits:
+        cpu: 200m
+        memory: 350Mi
+      requests:
+        cpu: 100m
+        memory: 350Mi
+    nodeExporter:
+      enabled: false
     collectors:
       pzbi:
         suffix: pzbi
         enabled: true
 
+        envFrom:
+          - secretRef:
+              name: otel-collector-secrets
+
         config:
+          extensions:
+            basicauth/prom:
+              client_auth:
+                username: ${env:PROM_USERNAME}
+                password: ${env:PROM_PASSWORD}
+            basicauth/logs:
+              client_auth:
+                username: ${env:LOGS_USERNAME}
+                password: ${env:LOGS_PASSWORD}
+            basicauth/traces:
+              client_auth:
+                username: ${env:TRACES_USERNAME}
+                password: ${env:TRACES_PASSWORD}
           processors:
             tail_sampling:
-              decision_wait: 10s
+              decision_wait: 5s
               num_traces: 100
               expected_new_traces_per_sec: 10
               policies:
@@ -21,9 +56,18 @@ observability:
                   {
                     name: randomized-policy,
                     type: probabilistic,
-                    probabilistic: { sampling_percentage: 25 },
+                    probabilistic: { sampling_percentage: 3 },
+                  },
+                  {
+                    name: force-trace-header-policy,
+                    type: string_attribute,
+                    string_attribute: { key: force_trace, values: [ "true" ] },
                   },
                 ]
+            filter/drop_calls_to_collector:
+              traces:
+                span:
+                  - attributes["server.address"] == "observability-pzbi-collector.observability.svc.cluster.local"
             filter/drop_actuator_traces:
               traces:
                 span:
@@ -32,32 +76,57 @@ observability:
               metrics:
                 datapoint:
                   - IsMatch(attributes["http.route"], "/actuator/.*")
+            filter/drop_healthz_traces:
+              traces:
+                span:
+                  - IsMatch(attributes["url.path"], "/healthz")
 
           exporters:
-            otlp/jaeger:
-              endpoint: "observability-jaeger.observability.svc.cluster.local:4317"
+            otlphttp/tempo:
+              endpoint: ${env:TRACES_ENDPOINT}
+              auth:
+                authenticator: basicauth/traces
               tls:
                 insecure: true
+            prometheus_remote_write:
+              endpoint: ${env:PROM_ENDPOINT}
+              auth:
+                authenticator: basicauth/prom
+              tls:
+                insecure: true
+              resource_to_telemetry_conversion:
+                enabled: true # Convert resource attributes to metric labels
+            otlphttp:
+              endpoint: ${env:LOGS_ENDPOINT}
+              auth:
+                authenticator: basicauth/logs
 
           service:
+            # Include the extension in the service
+            extensions: [
+              basicauth/prom,
+              basicauth/logs,
+              basicauth/traces
+            ]
             pipelines:
               traces:
                 receivers: [ otlp ]
-                processors: [ memory_limiter, filter/drop_actuator_traces, tail_sampling ]
-                exporters: [ otlp/jaeger, debug ]
+                processors: [
+                  memory_limiter,
+                  filter/drop_actuator_traces,
+                  filter/drop_calls_to_collector,
+                  filter/drop_healthz_traces,
+                  tail_sampling
+                ]
+                exporters: [ otlphttp/tempo ]
               metrics:
                 receivers: [ otlp, kubeletstats ]
                 processors: [ memory_limiter, filter/drop_actuator_metrics ]
-                exporters: [ debug ]
+                exporters: [ prometheus_remote_write ]
               logs:
                 receivers: [ otlp ]
                 processors: [ memory_limiter ]
-                exporters: [ debug ]
+                exporters: [ otlphttp ]
 
   jaeger:
-    enabled: true
-    jaeger:
-      ingress:
-        enabled: true
-        hosts:
-          - jaeger.example.com
+    enabled: false
