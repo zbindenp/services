@@ -43,7 +43,11 @@ public class LoadService {
         headers.setConnection(conectionHeader);
         final String uri = "/load?sleepMillis=" + sleepMillis;
         if (useWebClient) {
-            return webclient.get().uri(uri).retrieve().toEntity(String.class);
+            return webclient.get()
+                    .uri(uri)
+                    .headers(httpHeaders -> httpHeaders.addAll(headers))
+                    .retrieve()
+                    .toEntity(String.class);
         }
         final HttpEntity<String> request = new HttpEntity<>(headers);
         return Mono.fromCallable(() -> restTemplate.exchange(uri, HttpMethod.GET, request, String.class));
