@@ -65,17 +65,15 @@ observability:
                   },
                 ]
             filter/drop_calls_to_collector:
-              traces:
-                span:
-                  - attributes["server.address"] == "observability-pzbi-collector.observability.svc.cluster.local"
-            filter/drop_actuator_traces:
-              traces:
-                span:
-                  - IsMatch(attributes["http.route"], "/actuator/.*")
-            filter/drop_actuator_metrics:
-              metrics:
-                datapoint:
-                  - IsMatch(attributes["http.route"], "/actuator/.*")
+              trace_conditions:
+                - span.attributes["server.address"] == "observability-pzbi-collector.observability.svc.cluster.local"
+              metric_conditions:
+                - datapoint.attributes["server.address"] == "observability-pzbi-collector.observability.svc.cluster.local"
+            filter/drop_actuator_calls:
+              trace_conditions:
+                - IsMatch(span.attributes["http.route"], "/actuator/.*")
+              metric_conditions:
+                - IsMatch(datapoint.attributes["http.route"], "/actuator/.*")
             filter/drop_healthz_traces:
               traces:
                 span:
@@ -113,7 +111,7 @@ observability:
                 receivers: [ otlp ]
                 processors: [
                   memory_limiter,
-                  filter/drop_actuator_traces,
+                  filter/drop_actuator_calls,
                   filter/drop_calls_to_collector,
                   filter/drop_healthz_traces,
                   tail_sampling
@@ -121,7 +119,11 @@ observability:
                 exporters: [ otlphttp/tempo ]
               metrics:
                 receivers: [ otlp, kubeletstats ]
-                processors: [ memory_limiter, filter/drop_actuator_metrics ]
+                processors: [
+                  memory_limiter,
+                  filter/drop_actuator_calls,
+                  filter/drop_calls_to_collector
+                ]
                 exporters: [ prometheus_remote_write ]
               logs:
                 receivers: [ otlp ]
