@@ -30,20 +30,21 @@ repositories {
 }
 
 dependencies {
+	implementation libs.flyway.core
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.apache.httpcomponents.client5:httpclient5'
 	implementation 'io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter'
 	implementation 'org.apache.httpcomponents.client5:httpclient5'
-	runtimeOnly 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0'
-	runtimeOnly 'io.opentelemetry.instrumentation:opentelemetry-logback-mdc-1.0'
 
-	implementation libs.flyway.core
 	runtimeOnly libs.flyway.sqlserver
 	runtimeOnly libs.logstash.encoder
+	runtimeOnly 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0'
+	runtimeOnly 'io.opentelemetry.instrumentation:opentelemetry-logback-mdc-1.0'
+	runtimeOnly 'io.micrometer:micrometer-registry-otlp'
 	runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc'
-	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 

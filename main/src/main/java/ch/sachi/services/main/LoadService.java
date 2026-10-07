@@ -11,7 +11,9 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,32 +21,54 @@ public class LoadService {
     private final WebClient webclient;
     private final RestTemplate restTemplate;
 
-    public LoadService(RestTemplateBuilder builder, @Value("${main.loadbaseurl}") String loadbaseurl) {
+    public LoadService(
+            RestTemplateBuilder builder,
+            WebClient.Builder webClientBuilder,
+            @Value("${main.loadbaseurl}") String loadbaseurl
+    ) {
         LoggerFactory.getLogger(getClass()).info("Creating our CustomerService");
         restTemplate = builder.rootUri(loadbaseurl).build();
-        webclient = WebClient.create(loadbaseurl);
+        webclient = webClientBuilder.baseUrl(loadbaseurl).build();
     }
 
-    public LoadResponse getLoad(boolean useWebClient, String conectionHeader) {
-        long start = System.nanoTime();
+    Mono<ResponseEntity<String>> callLoad(boolean useWebClient, String conectionHeader, long sleepMillis) {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setConnection(conectionHeader);
         if (useWebClient) {
-            final ResponseEntity<String> response = webclient.get().uri("/load").retrieve().toEntity(String.class).block();
-            return createLoadResponse(response, start);
-        } else {
-            final HttpHeaders headers = new HttpHeaders();
-            headers.setConnection(conectionHeader);
-            final HttpEntity request = new HttpEntity(headers);
-            final ResponseEntity<String> response = restTemplate.exchange("/load", HttpMethod.GET, request, String.class);
-            return createLoadResponse(response, start);
+            return webclient.get().uri("/load?sleepMillis=" + sleepMillis).retrieve().toEntity(String.class);
         }
+        final HttpEntity request = new HttpEntity(headers);
+        final ResponseEntity<String> response = restTemplate.exchange("/load?sleepMillis=" + sleepMillis, HttpMethod.GET, request, String.class);
+        return Mono.just(response);
+
     }
+
+    Mono<LoadResponse> callTimedLoad(boolean useWebClient, String conectionHeader, long sleepMillis) {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setConnection(conectionHeader);
+        if (useWebClient) {
+            return webclient.get().uri("/load?sleepMillis=" + sleepMillis).retrieve().toEntity(String.class)
+                    .timed()
+                    .map(timedResult ->
+                            createLoadResponse(timedResult.get(), timedResult.elapsed())
+                    );
+        }
+        final HttpEntity request = new HttpEntity(headers);
+        final ResponseEntity<String> response = restTemplate.exchange("/load?sleepMillis=" + sleepMillis, HttpMethod.GET, request, String.class);
+        return Mono.just(response)
+                .timed()
+                .map(timedResult ->
+                        createLoadResponse(timedResult.get(), timedResult.elapsed())
+                );
+    }
+
 
     @NonNull
-    private static LoadResponse createLoadResponse(ResponseEntity<String> responseEntity, long startNanos) {
+    private static LoadResponse createLoadResponse(ResponseEntity<String> responseEntity, Duration duration) {
         final String responseHeaders = responseEntity.getHeaders()
                 .entrySet().stream()
                 .map(e -> e.getKey() + ": " + e.getValue())
                 .collect(Collectors.joining("// "));
-        return new LoadResponse(responseEntity.getBody(), System.nanoTime() - startNanos, responseHeaders);
+        return new LoadResponse(responseEntity.getBody(), duration.toNanos(), responseHeaders);
     }
 }

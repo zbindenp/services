@@ -22,16 +22,17 @@ public class CustomerService {
     private final WebClient webclient;
     private final RestTemplate restTemplate;
 
-    public CustomerService(RestTemplateBuilder builder, @Value("${main.customersbaseurl}") String customersbaseurl) {
+    public CustomerService(
+            RestTemplateBuilder builder,
+            WebClient.Builder webClientBuilder,
+            @Value("${main.customersbaseurl}") String customersbaseurl) {
         LoggerFactory.getLogger(getClass()).info("Creating our CustomerService");
         restTemplate = builder.rootUri(customersbaseurl).build();
-        webclient = WebClient.create(customersbaseurl);
+        webclient = webClientBuilder.baseUrl(customersbaseurl).build();
     }
 
     public List<CustomerInfo> getAllCustomers() {
-        final List<CustomerInfo> customerInfos = Arrays.asList(Objects.requireNonNull(restTemplate.getForObject("/customers", CustomerInfo[].class)));
-        assert customerInfos != null;
-        return customerInfos;
+        return Arrays.asList(Objects.requireNonNull(restTemplate.getForObject("/customers", CustomerInfo[].class)));
     }
 
     public String getLoad(boolean useWebClient, String conectionHeader) {
