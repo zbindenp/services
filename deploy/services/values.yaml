@@ -3,6 +3,13 @@ namespace: "services"
 mssql:
   saPassword: "myPassword4Services"
   nodePort: 31444
+  resources:
+    requests:
+      cpu: "0.1"
+      memory: "1024Mi"
+    limits:
+      cpu: "0.5"
+      memory: "1024Mi"
   databases:
     customers:
       user: "customersUser"
@@ -51,10 +58,10 @@ defaults:
     successThreshold: 1
     failureThreshold: 36
 
-#otel:
-#  enabled: true
-#  serviceName: "observability-daemon-collector"
-#  serviceNamespace: "observability"
+otel:
+  enabled: true
+  serviceName: "observability-pzbi-collector"
+  serviceNamespace: "observability"
 
 services:
   customers:
@@ -86,6 +93,7 @@ services:
   main:
     name: "main"
     replicaCount: 1
+    cpuBoost: true
     image:
       repository: "services/main"
     annotations:
