@@ -71,6 +71,12 @@ deploy:
 			--set defaults.registry="$$DOCKER_REGISTRY_PULL" \
 			--history-max 3
 
+deploytest:
+	@test -f .env || { echo "No .env found; run 'make init' first" >&2; exit 1; }
+	@set -euo pipefail; \
+	    mkdir -p .tmp; \
+		helm template deploy/services > .tmp/services.yaml
+
 observability:
 	@test -f .env || { echo "No .env found; run 'make init' first" >&2; exit 1; }
 	@set -euo pipefail; \
