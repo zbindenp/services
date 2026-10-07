@@ -14,3 +14,4 @@ gradle.properties
 /.env
 /deploy/**/charts/*.tgz
 /deploy/**/test.yaml
+.tmp/
