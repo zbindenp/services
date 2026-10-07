@@ -1,6 +1,6 @@
 dependencies:
 - name: mssql-dev
-  repository: https://raw.githubusercontent.com/zbindenp/helm-charts/gh-pages
-  version: 0.1.2
-digest: sha256:0d2c8e263cd8bf0d302cb0f409496be2a079952954ae79644dc4140b08e77fdb
-generated: "2026-07-29T13:07:41.883685+02:00"
+  repository: oci://ghcr.io/zbindenp
+  version: 0.1.8
+digest: sha256:15f828dd3861d7c76f28e76897ac22d4d5dcb4ef57751fa9b950299e85d3236e
+generated: "2026-07-31T13:50:15.153392+02:00"
